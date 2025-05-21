@@ -1,7 +1,11 @@
 # 使用
-> 开发环境 - python3.8
+更多功能参考：
+https://github.com/jmitchel3/django-nextjs/tree/main
+
 ## 安装依赖
 ```shell
+python -m venv venv
+venv\Scripts\activate
 pip install -r requirements.txt
 ```
 ## 迁移

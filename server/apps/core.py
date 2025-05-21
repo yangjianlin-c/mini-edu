@@ -1,19 +1,13 @@
 from ninja.errors import AuthenticationError
-
 from datetime import datetime, timezone, timedelta
-
 import secrets
-from typing import Any
-
+from typing import Any, Generic, TypeVar, Optional
 import jwt
 from ninja.security import HttpBearer
-
 from apps.user.models import User
-
-from typing import Generic, TypeVar, Optional
 from pydantic import BaseModel
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class R(BaseModel, Generic[T]):
@@ -31,18 +25,19 @@ class R(BaseModel, Generic[T]):
 
 
 class TokenUtil:
-
-    def __init__(self, effective_time: int = 300, secret_key: str = None, algorithms: str = "HS256"):
+    def __init__(
+        self,
+        effective_time: int = 300,
+        secret_key: str = None,
+        algorithms: str = "HS256",
+    ):
         """
         token 🔧
         :param effective_time: 有效时间-当前时间 + 指定秒数
         :param secret_key: 密钥
         :param algorithms: 加密算法
         """
-        if secret_key is None:
-            self.secret_key = secrets.token_urlsafe(64)
-        else:
-            self.secret_key = secret_key
+        self.secret_key = secret_key or secrets.token_urlsafe(64)
         self.effective_time = effective_time
         self.algorithms = algorithms
 
@@ -52,8 +47,11 @@ class TokenUtil:
         :param payload: 加密数据
         :return: token
         """
-        data = {"exp": datetime.now(tz=timezone.utc) + timedelta(seconds=self.effective_time)}
-        data.update({"payload": payload})
+        data = {
+            "exp": datetime.now(tz=timezone.utc)
+            + timedelta(seconds=self.effective_time),
+            "payload": payload,
+        }
         return jwt.encode(data, self.secret_key, self.algorithms)
 
     def parse(self, token: str) -> Any:
@@ -74,9 +72,8 @@ class AuthBearer(HttpBearer):
         try:
             user_id = token_util.parse(token)
             request.user = User.objects.get(id=user_id)
-            # 返回用户id
             return user_id
-        except Exception as e:
+        except Exception:
             raise AuthenticationError()
 
 
