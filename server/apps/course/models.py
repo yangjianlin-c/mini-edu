@@ -1,9 +1,21 @@
 from django.db import models
 from mdeditor.fields import MDTextField
-
+from django.utils.timezone import now
 from apps.user.models import User
 
-# Create your models here.
+
+class Tag(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "标签"
+        verbose_name_plural = "标签管理"
+
 
 default_tell = """#### 课程须知
 如果有问题及时反馈  
@@ -13,13 +25,20 @@ Django Ninja & React 前后端的使用
 
 
 class Course(models.Model):
-    name = models.CharField(max_length=50, verbose_name="名称")
-    briefly = models.CharField(max_length=255, verbose_name="简介")
-    level = models.IntegerField(choices=((3, '初级'), (2, '中级'), (1, '高级')), verbose_name="难度")
+    title = models.CharField(max_length=50, verbose_name="名称")
+    description = models.CharField(max_length=255, verbose_name="简介")
+    level = models.IntegerField(
+        choices=((3, "初级"), (2, "中级"), (1, "高级")), verbose_name="难度"
+    )
     study_number = models.IntegerField(verbose_name="学习人数", default=0)
+    like_number = models.IntegerField(verbose_name="收藏人数", default=0)
     tell = MDTextField(verbose_name="需要告知的内容", default=default_tell)
     image = models.ImageField(upload_to="courses/", verbose_name="图片")
     sort_number = models.IntegerField(default=999, verbose_name="序号")
+    price = models.IntegerField(verbose_name="课程价格（元）", default=0)
+    tags = models.ManyToManyField(Tag, related_name="courses", blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return self.name
@@ -30,9 +49,11 @@ class Course(models.Model):
 
 
 class Chapter(models.Model):
-    name = models.CharField(max_length=50, verbose_name="名称")
-    briefly = models.CharField(max_length=200, verbose_name="简介")
-    course = models.ForeignKey(Course, on_delete=models.SET_NULL, verbose_name="所属课程", null=True)
+    title = models.CharField(max_length=50, verbose_name="名称")
+    description = models.CharField(max_length=200, verbose_name="简介")
+    course = models.ForeignKey(
+        Course, on_delete=models.SET_NULL, verbose_name="所属课程", null=True
+    )
     sort_number = models.IntegerField(default=999, verbose_name="序号")
 
     def __str__(self):
@@ -43,10 +64,25 @@ class Chapter(models.Model):
         verbose_name_plural = "章节管理"
 
 
+Video_Source = (
+    ("bili", "Bilibili"),
+    ("qiniu", "Qiniu Cloud"),
+    ("local", "Local"),
+)
+
+
 class Video(models.Model):
     title = models.CharField(max_length=100, verbose_name="标题")
-    video = models.FileField(upload_to="videos/", verbose_name="视频文件")
-    chapter = models.ForeignKey(Chapter, verbose_name="所属章节", on_delete=models.SET_NULL, null=True)
+    chapter = models.ForeignKey(
+        Chapter, verbose_name="所属章节", on_delete=models.SET_NULL, null=True
+    )
+    free_preview = models.BooleanField(default=False)
+    video_source = models.CharField(max_length=20, choices=Video_Source)
+    video_url = models.CharField(max_length=255, null=True, blank=True)
+    content = models.TextField()
+    file = models.FileField(upload_to="courses/", null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return self.title
@@ -57,9 +93,15 @@ class Video(models.Model):
 
 
 class Comment(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, verbose_name="用户", null=True)
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, verbose_name="用户", null=True
+    )
     content = models.TextField(verbose_name="评论内容")
-    course = models.ForeignKey(Course, on_delete=models.SET_NULL, verbose_name="课程", null=True)
+    course = models.ForeignKey(
+        Course, on_delete=models.SET_NULL, verbose_name="课程", null=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return self.content
@@ -69,14 +111,43 @@ class Comment(models.Model):
         verbose_name_plural = "评论管理"
 
 
-class UserHub(models.Model):
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, verbose_name="用户")
-    act_type = models.IntegerField(choices=((1, '学习'), (2, '收藏')))
-    course = models.ForeignKey(Course, on_delete=models.SET_NULL, null=True, verbose_name="课程")
+class Like(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, verbose_name="用户"
+    )
+    course = models.ForeignKey(
+        Course, on_delete=models.SET_NULL, null=True, verbose_name="课程"
+    )
 
     def __str__(self):
-        return self.user.username + f" {self.act_type} "  + self.course.name
+        return f"{self.user.username} 喜欢了 {self.course.name}"
 
     class Meta:
-        verbose_name = "操作记录"
-        verbose_name_plural = "用户操作记录"
+        verbose_name = "收藏课程"
+        verbose_name_plural = "收藏课程"
+
+
+STATUS_CHOICES = (
+    ("unpaid", "未支付"),
+    ("paid", "已支付"),
+    ("cancelled", "已取消"),
+)
+
+
+class Enrollment(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, verbose_name="用户", null=True
+    )
+    course = models.ForeignKey(
+        Course, on_delete=models.SET_NULL, verbose_name="课程", null=True
+    )
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="unpaid")
+    create_time = models.DateTimeField(verbose_name="创建时间", default=now)
+    update_time = models.DateTimeField(verbose_name="更新时间", default=now)
+
+    def __str__(self):
+        return f"{self.user.username} 加入了 {self.course.name} 课程"
+
+    class Meta:
+        verbose_name = "订购课程"
+        verbose_name_plural = "订购课程"

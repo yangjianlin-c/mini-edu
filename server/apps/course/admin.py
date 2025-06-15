@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Course, Chapter, Video, Comment, UserHub
+from .models import Course, Chapter, Video, Comment, Like, Enrollment, Tag
 
 
 class ChapterInline(admin.StackedInline):
@@ -16,38 +16,72 @@ class VideoInline(admin.StackedInline):
 
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
-    list_display = ('name', 'briefly', 'level', 'study_number', 'sort_number')
-    search_fields = ('name',)
-    inlines = [ChapterInline]
-    fieldsets = (
-        (None, {
-            'fields': ('name', 'briefly', 'level', 'tell', 'image', 'sort_number')
-        }),
+    list_display = (
+        "id",
+        "title",
+        "description",
+        "level",
+        "price",
+        "study_number",
+        "sort_number",
     )
+    search_fields = ("title",)
+    readonly_fields = ("study_number", "like_number")
 
 
 @admin.register(Chapter)
 class ChapterAdmin(admin.ModelAdmin):
-    list_display = ('name', 'briefly', 'course', 'sort_number')
-    search_fields = ('name',)
+    list_display = ("title", "description", "course", "sort_number")
+    search_fields = ("title",)
     inlines = [VideoInline]
-    list_filter = ('course',)
+    list_filter = ("course",)
 
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
-    list_display = ('title', 'chapter',)
-    search_fields = ('title',)
+    list_display = (
+        "title",
+        "chapter",
+    )
+    search_fields = ("title",)
 
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('user', 'course', 'content',)
-    search_fields = ('user__username', 'course__name',)
+    list_display = (
+        "user",
+        "course",
+        "content",
+    )
+    search_fields = (
+        "user__username",
+        "course__name",
+    )
 
 
-@admin.register(UserHub)
-class UserHubAdmin(admin.ModelAdmin):
-    list_display = ('user', 'act_type', 'course',)
-    search_fields = ('user__username', 'course__name',)
-    list_filter = ('act_type',)
+admin.site.register(Like)
+
+
+@admin.register(Enrollment)
+class EnrollmentAdmin(admin.ModelAdmin):
+    list_display = (
+        "user",
+        "course",
+        "status",
+    )
+    list_editable = ("status",)
+    search_fields = (
+        "user__username",
+        "course__name",
+    )
+    list_filter = ("status",)
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ("name", "created_at", "updated_at")
+    search_fields = ("name",)
+    ordering = ("name",)
+
+    def __str__(self):
+        return self.name

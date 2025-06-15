@@ -1,14 +1,20 @@
 import logging
 import os.path
-from typing import List,  Union
+from typing import List, Union
 
 from ninja import Router
 
 from apps.core import R, token_util, auth
-from apps.course.models import UserHub, Course
+from apps.course.models import Like, Course, Enrollment
 from apps.course.schemas import CourseSchema
 from apps.user.models import Banner, User, Feedback
-from apps.user.schemas import LoginSchema, BannerSchema, UserSchema, FeedbackSchema, LoginResult
+from apps.user.schemas import (
+    LoginSchema,
+    BannerSchema,
+    UserSchema,
+    FeedbackSchema,
+    LoginResult,
+)
 from ninja import File, UploadedFile
 from django.contrib.auth.hashers import make_password, check_password
 
@@ -55,7 +61,7 @@ def auth_avatar(request, avatar: UploadedFile = File(...)):
     return R.ok(data={"url": user.avatar.url})
 
 
-@router.patch('/profile', summary="修改信息", **auth)
+@router.patch("/profile", summary="修改信息", **auth)
 def auth_profile(request, data: UserSchema):
     if obj := data.dict(exclude_unset=True):
         if "password" in obj:
@@ -67,37 +73,67 @@ def auth_profile(request, data: UserSchema):
 
 ###
 
-@router.get('/banner', summary="轮播图", response=List[BannerSchema])
+
+@router.get("/banner", summary="轮播图", response=List[BannerSchema])
 def get_banners(request):
     return Banner.objects.all().order_by("-sort_number")
 
 
-@router.get("/course", summary="根据操作类型获取课程", response=List[CourseSchema], **auth)
-def get_courses_by_act_type(request, act_type: int = 1):
-    """act_type 1 or 2, 1学习 2收藏"""
-    objs = UserHub.objects.filter(user_id=request.auth, act_type=act_type)
+@router.get(
+    "/like", summary="根据操作类型获取课程", response=List[CourseSchema], **auth
+)
+def get_courses_by_like(request):
+    objs = Like.objects.filter(user_id=request.auth)
     return [obj.course for obj in objs]
 
 
-@router.post("/course", summary="收藏/学习", **auth)
-def add_user_hub(request, course_id: int, act_type: int):
-    kwargs = dict(user_id=request.auth, act_type=act_type, course_id=course_id)
+@router.post("/like", summary="收藏课程", **auth)
+def add_user_like(request, course_id: int):
+    kwargs = dict(user_id=request.auth, course_id=course_id)
     course = Course.objects.filter(id=course_id).first()
     if not course:
         return R.fail("课程不存在")
     try:
-        obj = UserHub.objects.get(**kwargs)
-        if obj.act_type != 1:
-            obj.delete()
-            logging.info(f"{obj.user_id} 取消 {act_type} {course_id}")
-            return R.ok(msg="已取消收藏")
-    except UserHub.DoesNotExist:
-        UserHub.objects.create(**kwargs)
-        if act_type == 1:
-            course.study_number += 1
-            course.save()
-
+        obj = Like.objects.get(**kwargs)
+        obj.delete()
+        logging.info(f"{obj.user_id} 取消收藏课程 {course_id}")
+        return R.ok(msg="已取消收藏")
+    except Like.DoesNotExist:
+        Like.objects.create(**kwargs)
+        logging.info(f"{obj.user_id} 收藏课程 {course_id}")
     return R.ok(msg="收藏成功")
+
+
+@router.get(
+    "/enrollment", summary="获取用户报名的课程", response=List[CourseSchema], **auth
+)
+def get_user_enrollment(request):
+    objs = Enrollment.objects.filter(user_id=request.auth)
+    return [obj.course for obj in objs]
+
+
+@router.post("/enrollment", summary="报名课程", **auth)
+def add_user_enrollment(request, course_id: int):
+    user_id = request.auth.get("user_id")
+
+    course = Course.objects.filter(id=course_id).first()
+    if not course:
+        return R.fail("课程不存在")
+
+    # 检查用户是否已经报名了该课程
+    enrollment = Enrollment.objects.filter(user_id=user_id, course_id=course_id).first()
+    if enrollment:
+        return R.fail("您已经报名了该课程")
+
+    # 创建新的报名记录，状态设置为“未支付”
+    enrollment = Enrollment.objects.create(
+        user_id=user_id, course_id=course_id, status="unpaid"
+    )
+    logging.info(f"{user_id} 报名了课程 {course_id}，状态为未支付")
+    return R.ok(
+        msg="报名成功",
+        data={"course_id": enrollment.course_id, "status": enrollment.status},
+    )
 
 
 @router.post("/feedback", summary="反馈留言", **auth)

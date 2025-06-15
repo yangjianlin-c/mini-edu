@@ -2,11 +2,19 @@ from typing import List
 
 from ninja import ModelSchema, Schema, Field
 
-from apps.course.models import Course, Chapter, Comment, Video
+from apps.course.models import Course, Chapter, Comment, Video, Enrollment, Tag
 from apps.user.schemas import UserInfo
 
 
+class TagSchema(ModelSchema):
+    class Meta:
+        model = Tag
+        fields = ["id", "name"]
+
+
 class CourseSchema(ModelSchema):
+    tags: List[TagSchema]
+
     class Meta:
         model = Course
         fields = "__all__"
@@ -37,3 +45,9 @@ class CommentSchema(ModelSchema):
 class CommentCreate(Schema):
     content: str = Field(..., description="评论内容")
     course_id: int = Field(..., description="课程ID")
+
+
+class EnrollmentSchema(Schema):
+    class Meta:
+        model = Enrollment
+        fields = "__all__"

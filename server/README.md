@@ -12,7 +12,6 @@ pip install -r requirements.txt
 ```shell
 # 生成迁移文件
 python manage.py makemigrations
-# 创建表
 python manage.py migrate
 ```
 ## 创建管理员账号
