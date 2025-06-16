@@ -10,6 +10,7 @@ from apps.course.schemas import CourseSchema
 from apps.user.models import Banner, User, Feedback
 from apps.user.schemas import (
     LoginSchema,
+    RegisterSchema,
     BannerSchema,
     UserSchema,
     FeedbackSchema,
@@ -40,6 +41,30 @@ def auth_login(request, auth: LoginSchema):
     # 生成token
     token = token_util.build(obj.id)
     return {"token": token, "user": obj}
+
+
+@router.post("/register", summary="注册", response=Union[LoginResult, R])
+def auth_register(request, register_data: RegisterSchema):
+    try:
+        # 检查用户名是否已存在
+        if User.objects.filter(username=register_data.username).exists():
+            return R.fail("用户名已存在")
+
+        # 创建新用户
+        password = make_password(register_data.password)  # 对密码进行哈希处理
+        user = User.objects.create(
+            username=register_data.username,
+            email=register_data.email,
+            password=password,
+        )
+
+        # 生成token
+        token = token_util.build(user.id)
+        return {"token": token, "user": user}
+
+    except Exception as e:
+        logging.error(f"注册失败: {e}")
+        return R.fail("注册失败")
 
 
 @router.post("/logout", summary="退出")

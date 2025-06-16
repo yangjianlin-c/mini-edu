@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { login } from "@/api/auth";
+import { useAuth } from "@/api/auth-context";
+
 
 export default function LoginPage() {
     const router = useRouter()
@@ -13,22 +14,14 @@ export default function LoginPage() {
     const [password, setPassword] = useState("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
+    const { login } = useAuth();
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
-        setError("")
-
-        try {
-            const response = await login(username, password);
-            if (response.status === 200) {
-                router.push("/")
-            }
-        } catch (err: any) {
-            console.error(err);
-            setError(err?.response?.data?.detail || "登录失败")
-        } finally {
-            setLoading(false)
+        e.preventDefault();
+        const payload = { username, password };
+        const success = await login(payload);
+        if (success) {
+            router.push("/");
         }
     }
 

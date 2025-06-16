@@ -16,6 +16,12 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface RegisterPayload {
+  username: string;
+  email: string;
+  password: string;
+}
+
 export interface Course {
   id: number;
   name: string;
@@ -63,6 +69,15 @@ export function userLogout(): Promise<ApiResponse> {
   return api({
     method: "POST",
     url: "/user/logout",
+  });
+}
+
+// 用户注册
+export function userRegister(payload: RegisterPayload): Promise<ApiResponse> {
+  return api({
+    method: "POST",
+    data: payload,
+    url: "/user/register",
   });
 }
 

@@ -10,6 +10,12 @@ class LoginSchema(Schema):
     password: str = Field(..., description="密码")
 
 
+class RegisterSchema(Schema):
+    username: str = Field(..., example="user")
+    email: str = Field(..., example="user@mekesim.com")
+    password: str = Field(..., example="password")
+
+
 class UserSchema(Schema):
     password: str = Field(None, description="密码")
     nickname: str = Field(None, description="昵称")

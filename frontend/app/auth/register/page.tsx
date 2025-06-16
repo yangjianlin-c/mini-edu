@@ -1,41 +1,53 @@
-"use client"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { register } from "@/api/auth";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/api/auth-context";
+import { toast } from "sonner"; // 导入 toast 用于显示消息
+import { userRegister } from "@/api/userApi"; // 导入 userRegister 方法
 
 export default function RegisterPage() {
-    const router = useRouter()
-    const [username, setUsername] = useState("")
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState("")
+    const router = useRouter();
+    const { login } = useAuth(); // 使用 useAuth 钩子中的 login 方法
+    const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setLoading(true)
-        setError("")
+        e.preventDefault();
+        setLoading(true);
+        setError("");
         try {
-            const response = await register({ username, email, password });
-            console.log(response);
-            if (response.status === 200) {
-                // 注册成功，自动登录
-                localStorage.setItem('access_token', response.data.access);
-                localStorage.setItem('refresh_token', response.data.refresh);
-                router.push("/") // 跳转到主页
+            const payload = { username, email, password };
+            const registerResponse = await userRegister(payload);
+
+            if (registerResponse.status !== 200) {
+                throw new Error(registerResponse.data?.detail || "注册失败");
+            }
+
+            // 注册成功，自动登录
+            const loginResponse = await login(payload);
+
+            if (loginResponse) {
+                toast.success("注册并登录成功！");
+                router.push("/");
+            } else {
+                toast.error("登录失败，请检查输入信息");
             }
         } catch (err: any) {
             console.error(err);
-            setError(err?.data?.detail || "注册失败")
+            setError(err.message);
+            toast.error(err.message);
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
 
     return (
         <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-6 md:p-10">
@@ -58,7 +70,7 @@ export default function RegisterPage() {
                                             type="text"
                                             name="username"
                                             value={username}
-                                            onChange={e => setUsername(e.target.value)}
+                                            onChange={(e) => setUsername(e.target.value)}
                                             placeholder="请输入用户名"
                                             required
                                         />
@@ -69,7 +81,7 @@ export default function RegisterPage() {
                                             type="email"
                                             name="email"
                                             value={email}
-                                            onChange={e => setEmail(e.target.value)}
+                                            onChange={(e) => setEmail(e.target.value)}
                                             placeholder="请输入邮箱"
                                             required
                                         />
@@ -78,8 +90,9 @@ export default function RegisterPage() {
                                         <Label htmlFor="password">密码</Label>
                                         <Input
                                             type="password"
+                                            name="password"
                                             value={password}
-                                            onChange={e => setPassword(e.target.value)}
+                                            onChange={(e) => setPassword(e.target.value)}
                                             placeholder="请输入密码"
                                             required
                                         />
@@ -115,5 +128,5 @@ export default function RegisterPage() {
                 </div>
             </div>
         </div>
-    )
+    );
 }

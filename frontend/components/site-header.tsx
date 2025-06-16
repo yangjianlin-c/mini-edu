@@ -1,63 +1,47 @@
-"use client"
-import { useEffect, useState } from "react"
-import Link from "next/link"
+"use client";
 
-import { siteConfig } from "@/config/site"
-import { Icons } from "@/components/icons"
-import { MainNav } from "@/components/main-nav"
-import { MobileNav } from "@/components/mobile-nav"
-import { ModeSwitcher } from "@/components/mode-switcher"
-import { Button } from "@/components/ui/button"
-import { Container } from "@/components/ui/container"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { User } from "lucide-react"
-import { SearchBox } from "@/components/search-box"
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/api/auth-context";
+import { User } from "lucide-react";
+
+import {
+    Avatar,
+    AvatarFallback,
+    AvatarImage,
+} from "@/components/ui/avatar";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { getCurrentUser } from "@/api/user"
+} from "@/components/ui/dropdown-menu";
+
+import { Button } from "@/components/ui/button";
+import { Container } from "@/components/ui/container";
+import { MainNav } from "@/components/main-nav";
+import { MobileNav } from "@/components/mobile-nav";
+import { ModeSwitcher } from "@/components/mode-switcher";
+import { SearchBox } from "@/components/search-box";
+import { siteConfig } from "@/config/site";
+import { Icons } from "@/components/icons";
+import { getImageUrl } from "@/api/config";
+
+
 
 export function SiteHeader() {
-    const [user, setUser] = useState<{ name: string, image: string } | null>(null)
+    const router = useRouter();
+    const { auth, logout } = useAuth();
 
-    useEffect(() => {
-        const checkAuth = async () => {
-            const token = localStorage.getItem('access_token')
-            if (!token) {
-                setUser(null)
-                return
-            }
-            try {
-                const response = await getCurrentUser()
-                setUser({
-                    name: response.data.username || "",
-                    image: response.data.avatar_url || ""
-                })
-            } catch (error) {
-                console.error("获取用户信息失败", error)
-                setUser(null)
-            }
-        }
-        checkAuth()
-    }, [])
 
-    const handleLogout = async () => {
-        try {
-            localStorage.removeItem('access_token')
-            localStorage.removeItem('refresh_token')
-            setUser(null)
-            window.location.href = "/"
-        } catch (error) {
-            console.error("退出登录失败", error)
-        }
-    }
+    const handleLogout = () => {
+        logout();
+        router.push("/");
+    };
 
     return (
-        <header className="border-grid sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <Container>
                 <div className="flex h-12 items-center gap-2 md:gap-3">
                     <MainNav />
@@ -83,33 +67,31 @@ export function SiteHeader() {
                                 </Link>
                             </Button>
                             <ModeSwitcher />
-                            {user ? (
+                            {auth ? (
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
                                         <Avatar className="h-7 w-7 cursor-pointer">
-                                            {user.image ? (
-                                                <AvatarImage src={user.image} alt={user.name} />
-                                            ) : null}
-                                            <AvatarFallback>
-                                                <User className="h-3.5 w-3.5" />
-                                            </AvatarFallback>
+                                            {auth.user.avatar ? (
+                                                <AvatarImage
+                                                    src={getImageUrl(auth.user.avatar)}
+                                                    alt={auth.user.username}
+                                                />
+                                            ) : (
+                                                <AvatarFallback>
+                                                    <User className="h-3.5 w-3.5" />
+                                                </AvatarFallback>
+                                            )}
                                         </Avatar>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <Link href="/user/settings" className="w-full">
-                                            <DropdownMenuItem>
-                                                个人设置
-                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>个人设置</DropdownMenuItem>
                                         </Link>
                                         <Link href="/user/courses" className="w-full">
-                                            <DropdownMenuItem>
-                                                我的课程
-                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>我的课程</DropdownMenuItem>
                                         </Link>
                                         <Link href="/user/orders" className="w-full">
-                                            <DropdownMenuItem>
-                                                我的订单
-                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>我的订单</DropdownMenuItem>
                                         </Link>
                                         <DropdownMenuSeparator />
                                         <DropdownMenuItem onClick={handleLogout}>
@@ -130,14 +112,10 @@ export function SiteHeader() {
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
                                         <Link href="/auth/login" className="w-full">
-                                            <DropdownMenuItem>
-                                                登录
-                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>登录</DropdownMenuItem>
                                         </Link>
                                         <Link href="/auth/register" className="w-full">
-                                            <DropdownMenuItem>
-                                                注册
-                                            </DropdownMenuItem>
+                                            <DropdownMenuItem>注册</DropdownMenuItem>
                                         </Link>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -147,5 +125,5 @@ export function SiteHeader() {
                 </div>
             </Container>
         </header>
-    )
+    );
 }
