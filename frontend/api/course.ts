@@ -1,39 +1,37 @@
-import {host,getImageUrl} from './config'
-import api from "./req";
-import { Course } from "../types/course";
+// 在 frontend/api/course.ts 文件中
 
+import { host, getImageUrl } from './config';
+import api from "./req";
+import { Course } from "../types/course"; // 使用新的接口名称
 
 // 获取课程tag列表
 export function listTags() {
-  return api({ method: "GET", url: "course/tags" });
+  return api({ method: "GET", url: "course/tag/list" })
+    .then((res) => res.data || []);
 }
-
 
 // 获取所有课程
-export function listCourses(): Promise<Course[]> {
-  return api({
-    method: "GET",
-    url: "/course/all",
-  }).then((res) => {
-    if (res.data) {
-      return res.data.map((course: Course) => ({
-        ...course,
-        image: getImageUrl(course.image),
-      }));
-    }
-    return [];
+export function listCourses(name?: string, tag_id?: number): Promise<Course[]> {
+  const params = new URLSearchParams({
+    ...(name && { name }),
+    ...(tag_id !== undefined && { tag_id: tag_id.toString() }),
   });
+
+  const url = `/course/all${params.toString() ? `?${params.toString()}` : ""}`;
+
+  return api({ method: "GET", url }).then((res) => res.data || []);
 }
 
+
 // 获取单个课程详情
-export function getCourse(course_id: number): Promise<{ data: CourseDetail }> {
+export function getCourse(course_id: number): Promise<{ data: Course }> {
   return api({ method: "GET", url: `course/${course_id}` }).then((response) => {
     if (response.data) {
       // 统一使用 image 字段名
-      response.data.image = getImageUrl(response.data.image || response.data.thumbnail || "")
+      response.data.image = getImageUrl(response.data.image || response.data.thumbnail || "");
     }
-    return response
-  })
+    return response;
+  });
 }
 
 // 获取课程下的课时
@@ -57,4 +55,3 @@ export function createOrderForCourse(course_id: number, note?: string) {
     }
   });
 }
-

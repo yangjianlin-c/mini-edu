@@ -1,20 +1,28 @@
-// types/course.ts
 
-export interface CourseSummary {
-  id: number
-  title: string
-  description: string
-  level: number
-  study_number: number
-  like_number: number
-  tell: string
-  image: string
-  sort_number: number
-  price: number
-  created_at: string
-  updated_at: string
-  tags: number[]
+// 在 types/course.ts 文件中定义 Course 接口
+
+export interface CourseTag {
+  id: number;
+  name: string;
 }
+
+export interface Course {
+  id: number;
+  title: string;
+  description: string;
+  level: number;
+  study_number: number;
+  like_number: number;
+  tell: string;
+  image: string;
+  sort_number: number;
+  price: number;
+  created_at: string;
+  updated_at: string;
+  tags: CourseTag[];
+}
+
+
 
 export interface CourseDetail {
   id: number
@@ -22,7 +30,7 @@ export interface CourseDetail {
   description: string
   price: number
   image: string
-  tags: Tag[]
+  tags: CourseTag[]
   lessons: Lesson[]
   enrolled_users: any[]
 }
@@ -40,7 +48,5 @@ export type Lesson = {
   course_id: number
 }
 
-export interface Tag {
-  id: number
-  name: string
-}
+
+

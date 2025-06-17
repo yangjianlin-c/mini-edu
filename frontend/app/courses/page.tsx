@@ -12,24 +12,11 @@ import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/comp
 import { Tag } from "lucide-react"
 
 import { listCourses, listTags } from "@/api/course"
+import { Course, CourseTag } from "@/types/course";
+import { getImageUrl } from '@/api/config';
 
-const title = "在线课程"
-const description = "米克网提供的电子产品热管理在线课程"
 
 
-interface Tag {
-    id: number
-    name: string
-}
-
-type Course = {
-    id: number
-    title: string
-    description: string
-    price: number
-    image: string
-    tags: Tag[]
-}
 
 interface CoursesPageProps {
     params?: { [key: string]: string | string[] | undefined }
@@ -38,19 +25,27 @@ interface CoursesPageProps {
 
 export default function CoursesPage({ params, searchParams }: CoursesPageProps) {
     const [courses, setCourses] = useState<Course[]>([])
-    const [tags, setTags] = useState<Tag[]>([])
+    const [tags, setTags] = useState<CourseTag[]>([])
     const [loading, setLoading] = useState(true)
     const [selectedTagId, setSelectedTagId] = useState<number | null>(null)
+
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const [coursesResponse, tagsResponse] = await Promise.all([
-                    listCourses(selectedTagId || undefined),
+                    listCourses(undefined, selectedTagId || undefined),
                     listTags()
                 ])
-                setCourses(Array.isArray(coursesResponse.data.items) ? coursesResponse.data.items : [])
-                setTags(tagsResponse.data || [])
+
+
+                setCourses(Array.isArray(coursesResponse) ? coursesResponse.map(course => ({
+                    ...course,
+                    image: getImageUrl(course.image)
+                })) : [])
+
+                setTags(Array.isArray(tagsResponse) ? tagsResponse : [])
+
             } catch (error) {
                 console.error("获取数据失败:", error)
                 setCourses([])
@@ -107,13 +102,15 @@ export default function CoursesPage({ params, searchParams }: CoursesPageProps) 
                                     <Card key={course.id} className="pt-0">
 
                                         <div className="overflow-hidden rounded-t-lg">
-                                            <Link href={`/course/${course.id}`}><Image
-                                                src={course.thumbnail ? course.thumbnail : `/${course.id}.png`}
-                                                alt={course.title}
-                                                width={400}
-                                                height={200}
-                                                className="h-auto w-auto object-cover transition-all hover:scale-105 aspect-[2/1]"
-                                            /></Link>
+                                            <Link href={`/course/${course.id}`}>
+                                                <Image
+                                                    src={course.image ? course.image : `/${course.id}.png`}
+                                                    alt={course.title}
+                                                    width={400}
+                                                    height={200}
+                                                    className="h-auto w-auto object-cover transition-all hover:scale-105 aspect-[2/1]"
+                                                />
+                                            </Link>
                                         </div>
 
                                         <CardHeader>
@@ -121,7 +118,9 @@ export default function CoursesPage({ params, searchParams }: CoursesPageProps) 
                                                 <Tag className="h-4 w-4" />
                                                 ￥{course.price}
                                             </div>
-                                            <Link href={`/course/${course.id}`}> <CardTitle>{course.title}</CardTitle></Link>
+                                            <Link href={`/course/${course.id}`}>
+                                                <CardTitle>{course.title}</CardTitle>
+                                            </Link>
                                             <CardDescription>{course.description}</CardDescription>
                                         </CardHeader>
                                         <CardFooter>
