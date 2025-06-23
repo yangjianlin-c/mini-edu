@@ -9,10 +9,11 @@ import { Container } from "@/components/ui/container"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tag } from "lucide-react"
 import { FileText, Ruler, Wrench } from "lucide-react"
 import { listCourses } from "@/api/course"
 import type { Course } from "@/types/course"
+import { getImageUrl } from '@/api/config';
+import CourseGrid from '@/components/CourseGrid';
 
 export default function IndexPage() {
     const [courses, setCourses] = useState<Course[]>([])
@@ -22,19 +23,23 @@ export default function IndexPage() {
     useEffect(() => {
         const fetchCourses = async () => {
             try {
-                const response = await listCourses()
-                setCourses(response)
-                setError(null)
+                const response = await listCourses();
+                setCourses(response.map(course => ({
+                    ...course,
+                    image: getImageUrl(course.image)
+                })));
+                setError(null);
             } catch (err) {
-                setError('获取课程列表失败')
-                console.error('获取课程列表失败:', err)
+                setError('获取课程列表失败');
+                console.error('获取课程列表失败:', err);
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
-        }
+        };
 
-        fetchCourses()
-    }, [])
+        fetchCourses();
+    }, []);
+
     return (
         <>
             <SiteHeader />
@@ -80,48 +85,18 @@ export default function IndexPage() {
                             </h2>
                         </div>
 
-                        <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                            {loading ? (
-                                <div className="col-span-3 text-center py-8">加载中...</div>
-                            ) : error ? (
-                                <div className="col-span-3 text-center py-8 text-red-500">{error}</div>
-                            ) : courses.length === 0 ? (
-                                <div className="col-span-3 text-center py-8">暂无课程</div>
-                            ) : (
-                                courses.map((course) => (
-                                    <Card key={course.id} className="pt-0">
-                                        <div className="overflow-hidden rounded-t-lg">
-                                            <Link href={`/course/${course.id}`}><Image
-                                                src={course.image || `/${course.id}.png`}
-                                                alt={course.title}
-                                                width={400}
-                                                height={200}
-                                                className="h-auto w-auto object-cover transition-all hover:scale-105 aspect-[2/1]"
-                                            /></Link>
-                                        </div>
-                                        <CardHeader>
-                                            <div className="text-sm text-muted-foreground pb-2 flex items-center gap-2">
-                                                <Tag className="h-4 w-4" />
-                                                ￥{course.price}
-                                            </div>
-                                            <Link href={`/course/${course.id}`}><CardTitle>{course.title}</CardTitle>   </Link>
-                                            <CardDescription>{course.description}</CardDescription>
-                                        </CardHeader>
-
-                                        <CardFooter>
-                                            <div className="flex space-x-2">
-                                                <Button asChild size="sm">
-                                                    <Link href={`/course/${course.id}`}>立即学习</Link>
-                                                </Button>
-                                            </div>
-                                        </CardFooter>
-                                    </Card>
-                                ))
-                            )}
-                        </div>
+                        {/* 使用 CourseGrid 组件来渲染课程 */}
+                        {loading ? (
+                            <div className="col-span-3 text-center py-8">加载中...</div>
+                        ) : error ? (
+                            <div className="col-span-3 text-center py-8 text-red-500">{error}</div>
+                        ) : courses.length === 0 ? (
+                            <div className="col-span-3 text-center py-8">暂无课程</div>
+                        ) : (
+                            <CourseGrid courses={courses} />
+                        )}
                     </Container>
                 </section>
-
 
                 <section>
                     <Container className="space-y-6 py-8 md:py-12">
@@ -184,7 +159,6 @@ export default function IndexPage() {
                             </Card>
                         </div>
                     </Container>
-
                 </section>
             </main>
             <SiteFooter />

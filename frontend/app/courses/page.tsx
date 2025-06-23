@@ -1,22 +1,14 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-
 import { Button } from "@/components/ui/button"
 import { Container } from "@/components/ui/container"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
-import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tag } from "lucide-react"
-
 import { listCourses, listTags } from "@/api/course"
 import { Course, CourseTag } from "@/types/course";
 import { getImageUrl } from '@/api/config';
-
-
-
+import CourseGrid from '@/components/CourseGrid';
 
 interface CoursesPageProps {
     params?: { [key: string]: string | string[] | undefined }
@@ -29,34 +21,36 @@ export default function CoursesPage({ params, searchParams }: CoursesPageProps) 
     const [loading, setLoading] = useState(true)
     const [selectedTagId, setSelectedTagId] = useState<number | null>(null)
 
-
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const [coursesResponse, tagsResponse] = await Promise.all([
                     listCourses(undefined, selectedTagId || undefined),
                     listTags()
-                ])
+                ]);
 
+                setCourses(
+                    Array.isArray(coursesResponse)
+                        ? coursesResponse.map(course => ({
+                            ...course,
+                            image: getImageUrl(course.image)
+                        }))
+                        : []
+                );
 
-                setCourses(Array.isArray(coursesResponse) ? coursesResponse.map(course => ({
-                    ...course,
-                    image: getImageUrl(course.image)
-                })) : [])
-
-                setTags(Array.isArray(tagsResponse) ? tagsResponse : [])
+                setTags(Array.isArray(tagsResponse) ? tagsResponse : []);
 
             } catch (error) {
-                console.error("获取数据失败:", error)
-                setCourses([])
-                setTags([])
+                console.error("获取数据失败:", error);
+                setCourses([]);
+                setTags([]);
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
-        }
+        };
 
-        fetchData()
-    }, [selectedTagId])
+        fetchData();
+    }, [selectedTagId]);
 
     return (
         <>
@@ -96,46 +90,12 @@ export default function CoursesPage({ params, searchParams }: CoursesPageProps) 
                                     </Button>
                                 ))}
                             </div>
-
-                            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-                                {courses.map((course) => (
-                                    <Card key={course.id} className="pt-0">
-
-                                        <div className="overflow-hidden rounded-t-lg">
-                                            <Link href={`/course/${course.id}`}>
-                                                <Image
-                                                    src={course.image ? course.image : `/${course.id}.png`}
-                                                    alt={course.title}
-                                                    width={400}
-                                                    height={200}
-                                                    className="h-auto w-auto object-cover transition-all hover:scale-105 aspect-[2/1]"
-                                                />
-                                            </Link>
-                                        </div>
-
-                                        <CardHeader>
-                                            <div className="text-sm text-muted-foreground pb-2 flex items-center gap-2">
-                                                <Tag className="h-4 w-4" />
-                                                ￥{course.price}
-                                            </div>
-                                            <Link href={`/course/${course.id}`}>
-                                                <CardTitle>{course.title}</CardTitle>
-                                            </Link>
-                                            <CardDescription>{course.description}</CardDescription>
-                                        </CardHeader>
-                                        <CardFooter>
-                                            <Button size="sm" asChild>
-                                                <Link href={`/course/${course.id}`}>查看详情</Link>
-                                            </Button>
-                                        </CardFooter>
-                                    </Card>
-                                ))}
-                            </div>
+                            <CourseGrid courses={courses} />
                         </>
                     )}
                 </Container>
             </main>
             <SiteFooter />
         </>
-    )
+    );
 }

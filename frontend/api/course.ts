@@ -24,14 +24,13 @@ export function listCourses(name?: string, tag_id?: number): Promise<Course[]> {
 
 
 // 获取单个课程详情
-export function getCourse(course_id: number): Promise<{ data: Course }> {
-  return api({ method: "GET", url: `course/${course_id}` }).then((response) => {
-    if (response.data) {
-      // 统一使用 image 字段名
-      response.data.image = getImageUrl(response.data.image || response.data.thumbnail || "");
-    }
-    return response;
-  });
+export function getCourse(courseId: number): Promise<{ data: Course }> {
+  return api({ method: "GET", url: `course/${courseId}` });
+}
+
+// 获取课程章节列表
+export function getCourseChapters(courseId: number): Promise<{ data: any[] }> {
+  return api({ method: "GET", url: `course/chapter/list`, params: { course_id: courseId } });
 }
 
 // 获取课程下的课时
