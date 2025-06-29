@@ -2,7 +2,7 @@ from typing import List
 
 from ninja import ModelSchema, Schema, Field
 
-from apps.course.models import Course, Chapter, Comment, Video, Enrollment, Tag
+from apps.course.models import Course, Chapter, Comment, Lesson, Enrollment, Tag
 from apps.user.schemas import UserInfo
 
 
@@ -10,6 +10,24 @@ class TagSchema(ModelSchema):
     class Meta:
         model = Tag
         fields = ["id", "name"]
+
+
+class CourseListSchema(ModelSchema):
+    tags: List[TagSchema]
+
+    class Meta:
+        model = Course
+        fields = [
+            "id",
+            "title",
+            "description",
+            "level",
+            "study_number",
+            "favorite_number",
+            "tags",
+            "image",
+            "price",
+        ]
 
 
 class CourseSchema(ModelSchema):
@@ -20,14 +38,14 @@ class CourseSchema(ModelSchema):
         fields = "__all__"
 
 
-class VideoSchema(ModelSchema):
+class LessonSchema(ModelSchema):
     class Meta:
-        model = Video
+        model = Lesson
         fields = "__all__"
 
 
 class ChapterSchema(ModelSchema):
-    videos: List[VideoSchema] = None
+    Lessons: List[LessonSchema] = None
 
     class Meta:
         model = Chapter

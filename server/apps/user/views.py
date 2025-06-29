@@ -5,7 +5,7 @@ from typing import List, Union
 from ninja import Router
 
 from apps.core import R, token_util, auth
-from apps.course.models import Like, Course, Enrollment
+from apps.course.models import Favorite, Course, Enrollment
 from apps.course.schemas import CourseSchema
 from apps.user.models import Banner, User, Feedback
 from apps.user.schemas import (
@@ -105,28 +105,28 @@ def get_banners(request):
 
 
 @router.get(
-    "/like", summary="根据操作类型获取课程", response=List[CourseSchema], **auth
+    "/favorite", summary="根据操作类型获取课程", response=List[CourseSchema], **auth
 )
-def get_courses_by_like(request):
-    objs = Like.objects.filter(user_id=request.auth)
+def get_courses_by_favorite(request):
+    objs = Favorite.objects.filter(user_id=request.auth)
     return [obj.course for obj in objs]
 
 
-@router.post("/like", summary="收藏课程", **auth)
-def add_user_like(request, course_id: int):
+@router.post("/favorite", summary="收藏课程", **auth)
+def add_user_favorite(request, course_id: int):
     kwargs = dict(user_id=request.auth, course_id=course_id)
     course = Course.objects.filter(id=course_id).first()
     if not course:
         return R.fail("课程不存在")
     try:
-        obj = Like.objects.get(**kwargs)
+        obj = Favorite.objects.get(**kwargs)
         obj.delete()
         logging.info(f"{obj.user_id} 取消收藏课程 {course_id}")
         return R.ok(msg="已取消收藏")
-    except Like.DoesNotExist:
-        Like.objects.create(**kwargs)
-        logging.info(f"{obj.user_id} 收藏课程 {course_id}")
-    return R.ok(msg="收藏成功")
+    except Favorite.DoesNotExist:
+        Favorite.objects.create(**kwargs)
+        logging.info(f"{request.auth} 收藏课程 {course_id}")
+        return R.ok(msg="收藏成功")
 
 
 @router.get(

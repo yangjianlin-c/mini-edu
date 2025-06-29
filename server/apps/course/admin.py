@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Course, Chapter, Video, Comment, Like, Enrollment, Tag
+from .models import Course, Chapter, Lesson, Comment, Favorite, Enrollment, Tag
 
 
 class ChapterInline(admin.StackedInline):
@@ -9,8 +9,8 @@ class ChapterInline(admin.StackedInline):
 
 
 # 内联
-class VideoInline(admin.StackedInline):
-    model = Video
+class LessonInline(admin.StackedInline):
+    model = Lesson
     extra = 0
 
 
@@ -23,22 +23,23 @@ class CourseAdmin(admin.ModelAdmin):
         "level",
         "price",
         "study_number",
-        "sort_number",
+        "favorite_number",
+        "is_feature",
     )
     search_fields = ("title",)
-    readonly_fields = ("study_number", "like_number")
+    readonly_fields = ("study_number", "favorite_number")
 
 
 @admin.register(Chapter)
 class ChapterAdmin(admin.ModelAdmin):
     list_display = ("title", "description", "course", "sort_number")
     search_fields = ("title",)
-    inlines = [VideoInline]
+    inlines = [LessonInline]
     list_filter = ("course",)
 
 
-@admin.register(Video)
-class VideoAdmin(admin.ModelAdmin):
+@admin.register(Lesson)
+class LessonAdmin(admin.ModelAdmin):
     list_display = (
         "title",
         "chapter",
@@ -59,9 +60,6 @@ class CommentAdmin(admin.ModelAdmin):
     )
 
 
-admin.site.register(Like)
-
-
 @admin.register(Enrollment)
 class EnrollmentAdmin(admin.ModelAdmin):
     list_display = (
@@ -75,13 +73,11 @@ class EnrollmentAdmin(admin.ModelAdmin):
         "course__name",
     )
     list_filter = ("status",)
+    readonly_fields = ("create_time", "update_time")
 
 
-@admin.register(Tag)
-class TagAdmin(admin.ModelAdmin):
-    list_display = ("name", "created_at", "updated_at")
-    search_fields = ("name",)
-    ordering = ("name",)
+# admin.site.register(Like)
+admin.site.register(Tag)
 
-    def __str__(self):
-        return self.name
+
+admin.site.register(Favorite)

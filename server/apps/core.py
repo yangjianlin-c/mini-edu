@@ -1,11 +1,12 @@
 from ninja.errors import AuthenticationError
 from datetime import datetime, timezone, timedelta
-import secrets
 from typing import Any, Generic, TypeVar, Optional
 import jwt
 from ninja.security import HttpBearer
 from apps.user.models import User
 from pydantic import BaseModel
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
+from django.conf import settings
 
 T = TypeVar("T")
 
@@ -27,19 +28,10 @@ class R(BaseModel, Generic[T]):
 class TokenUtil:
     def __init__(
         self,
-        effective_time: int = 300,
-        secret_key: str = None,
-        algorithms: str = "HS256",
     ):
-        """
-        token 🔧
-        :param effective_time: 有效时间-当前时间 + 指定秒数
-        :param secret_key: 密钥
-        :param algorithms: 加密算法
-        """
-        self.secret_key = secret_key or secrets.token_urlsafe(64)
-        self.effective_time = effective_time
-        self.algorithms = algorithms
+        self.secret_key = settings.JWT_SECRET_KEY
+        self.effective_time = settings.JWT_EXPIRATION_TIME
+        self.algorithms = settings.JWT_ALGORITHM
 
     def build(self, payload: Any) -> str:
         """
@@ -55,13 +47,15 @@ class TokenUtil:
         return jwt.encode(data, self.secret_key, self.algorithms)
 
     def parse(self, token: str) -> Any:
-        """
-        解析token
-        :param token: token
-        :return: 加密的数据
-        """
-        payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithms])
-        return payload.get("payload")
+        try:
+            payload = jwt.decode(token, self.secret_key, algorithms=self.algorithms)
+            return payload.get("payload")
+        except ExpiredSignatureError:
+            raise AuthenticationError("Token has expired")
+        except InvalidTokenError:
+            raise AuthenticationError("Invalid token")
+        except Exception as e:
+            raise AuthenticationError(f"Token parsing error: {str(e)}")
 
 
 token_util = TokenUtil()
@@ -73,8 +67,12 @@ class AuthBearer(HttpBearer):
             user_id = token_util.parse(token)
             request.user = User.objects.get(id=user_id)
             return user_id
-        except Exception:
-            raise AuthenticationError()
+        except (ExpiredSignatureError, InvalidTokenError) as e:
+            raise AuthenticationError(f"Token error: {str(e)}")
+        except User.DoesNotExist:
+            raise AuthenticationError("User not found for this token")
+        except Exception as e:
+            raise AuthenticationError(f"Unexpected error: {str(e)}")
 
 
 auth = dict(auth=AuthBearer())

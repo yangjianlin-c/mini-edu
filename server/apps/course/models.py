@@ -2,12 +2,12 @@ from django.db import models
 from mdeditor.fields import MDTextField
 from django.utils.timezone import now
 from apps.user.models import User
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 
 
 class Tag(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True)
 
     def __str__(self):
         return self.name
@@ -31,21 +31,21 @@ class Course(models.Model):
         choices=((3, "初级"), (2, "中级"), (1, "高级")), verbose_name="难度"
     )
     study_number = models.IntegerField(verbose_name="学习人数", default=0)
-    like_number = models.IntegerField(verbose_name="收藏人数", default=0)
+    favorite_number = models.IntegerField(default=0, verbose_name="收藏数")
     tell = MDTextField(verbose_name="需要告知的内容", default=default_tell)
     image = models.ImageField(upload_to="courses/", verbose_name="图片")
-    sort_number = models.IntegerField(default=999, verbose_name="序号")
+    is_feature = models.BooleanField(default=False, verbose_name="精选课程")
     price = models.IntegerField(verbose_name="课程价格（元）", default=0)
     tags = models.ManyToManyField(Tag, related_name="courses", blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True)
+    update_time = models.DateTimeField(verbose_name="更新时间", auto_now=True)
 
     def __str__(self):
-        return self.name
+        return self.title
 
     class Meta:
         verbose_name = "课程"
-        verbose_name_plural = "课程管理"
+        verbose_name_plural = "01-课程管理"
 
 
 class Chapter(models.Model):
@@ -57,11 +57,11 @@ class Chapter(models.Model):
     sort_number = models.IntegerField(default=999, verbose_name="序号")
 
     def __str__(self):
-        return self.name
+        return self.title
 
     class Meta:
         verbose_name = "章节"
-        verbose_name_plural = "章节管理"
+        verbose_name_plural = "02-章节管理"
 
 
 Video_Source = (
@@ -71,7 +71,7 @@ Video_Source = (
 )
 
 
-class Video(models.Model):
+class Lesson(models.Model):
     title = models.CharField(max_length=100, verbose_name="标题")
     chapter = models.ForeignKey(
         Chapter, verbose_name="所属章节", on_delete=models.SET_NULL, null=True
@@ -82,49 +82,14 @@ class Video(models.Model):
     content = models.TextField()
     file = models.FileField(upload_to="courses/", null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True)
+    update_time = models.DateTimeField(verbose_name="更新时间", auto_now=True)
 
     def __str__(self):
         return self.title
 
     class Meta:
-        verbose_name = "视频"
-        verbose_name_plural = "视频管理"
-
-
-class Comment(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.SET_NULL, verbose_name="用户", null=True
-    )
-    content = models.TextField(verbose_name="评论内容")
-    course = models.ForeignKey(
-        Course, on_delete=models.SET_NULL, verbose_name="课程", null=True
-    )
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
-    updated_at = models.DateTimeField(auto_now=True, null=True)
-
-    def __str__(self):
-        return self.content
-
-    class Meta:
-        verbose_name = "评论"
-        verbose_name_plural = "评论管理"
-
-
-class Like(models.Model):
-    user = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, verbose_name="用户"
-    )
-    course = models.ForeignKey(
-        Course, on_delete=models.SET_NULL, null=True, verbose_name="课程"
-    )
-
-    def __str__(self):
-        return f"{self.user.username} 喜欢了 {self.course.name}"
-
-    class Meta:
-        verbose_name = "收藏课程"
-        verbose_name_plural = "收藏课程"
+        verbose_name = "课时"
+        verbose_name_plural = "03-课时管理"
 
 
 STATUS_CHOICES = (
@@ -143,11 +108,52 @@ class Enrollment(models.Model):
     )
     status = models.CharField(max_length=50, choices=STATUS_CHOICES, default="unpaid")
     create_time = models.DateTimeField(verbose_name="创建时间", default=now)
-    update_time = models.DateTimeField(verbose_name="更新时间", default=now)
+    update_time = models.DateTimeField(verbose_name="更新时间", auto_now=True)
 
     def __str__(self):
-        return f"{self.user.username} 加入了 {self.course.name} 课程"
+        return f"{self.user.username} 加入了 {self.course.title} 课程"
 
     class Meta:
         verbose_name = "订购课程"
-        verbose_name_plural = "订购课程"
+        verbose_name_plural = "04-订购课程管理"
+
+
+class Comment(models.Model):
+    user = models.ForeignKey(
+        User, on_delete=models.SET_NULL, verbose_name="用户", null=True
+    )
+    content = models.TextField(verbose_name="评论内容")
+    course = models.ForeignKey(
+        Course, on_delete=models.SET_NULL, verbose_name="课程", null=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    update_time = models.DateTimeField(verbose_name="更新时间", auto_now=True)
+
+    def __str__(self):
+        return self.content
+
+    class Meta:
+        verbose_name = "评论"
+        verbose_name_plural = "评论管理"
+
+
+class Favorite(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        verbose_name="课程",
+        related_name="favorites",
+    )
+
+    def __str__(self):
+        return f"用户 {self.user.username} 收藏了课程 {self.course.title}"
+
+    class Meta:
+        verbose_name = "收藏课程"
+        verbose_name_plural = "收藏课程管理"
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.course.favorite_number = self.course.favorites.count()
+        self.course.save()
