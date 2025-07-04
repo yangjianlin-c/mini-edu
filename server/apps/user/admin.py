@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import User, Banner, Feedback
+from django.contrib.auth.hashers import make_password
 
 
 # 使用Django默认的admin功能

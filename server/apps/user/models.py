@@ -1,10 +1,9 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import AbstractUser
 
 
-class User(models.Model):
-    username = models.CharField(max_length=20, unique=True, verbose_name="账号")
-    password = models.CharField(max_length=50, verbose_name="密码")
+class User(AbstractUser):
     nickname = models.CharField(
         max_length=30, verbose_name="昵称", null=True, blank=True
     )
@@ -28,7 +27,7 @@ class Banner(models.Model):
     sort_number = models.IntegerField(default=999, verbose_name="序号")
 
     def __str__(self):
-        return self.image.url
+        return str(self.image)
 
     class Meta:
         verbose_name = "轮播图"
@@ -46,7 +45,7 @@ class Feedback(models.Model):
     )
 
     def __str__(self):
-        return self.user.username
+        return str(self.user)
 
     class Meta:
         verbose_name = "反馈"

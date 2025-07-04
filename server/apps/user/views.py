@@ -34,9 +34,8 @@ def auth_login(request, auth: LoginSchema):
             # 验证失败
             return R.fail("用户名或密码错误")
     except User.DoesNotExist:
-        # 用户不存在
-        password = make_password(auth.password)  # 对密码进行哈希处理
-        obj = User.objects.create(username=auth.username, password=password)
+        # 用户不存在，直接返回失败
+        return R.fail("用户名或密码错误")
 
     # 生成token
     token = token_util.build(obj.id)
@@ -150,7 +149,7 @@ def add_user_enrollment(request, course_id: int):
     if enrollment:
         return R.fail("您已经报名了该课程")
 
-    # 创建新的报名记录，状态设置为“未支付”
+    # 创建新的报名记录，状态设置为"未支付"
     enrollment = Enrollment.objects.create(
         user_id=user_id, course_id=course_id, status="unpaid"
     )
