@@ -138,3 +138,6 @@ MEDIA_ROOT = BASE_DIR / "media"
 JWT_SECRET_KEY = "dfjoipierngp34980#{PI2mp)"
 JWT_EXPIRATION_TIME = 3600
 JWT_ALGORITHM = "HS256"
+
+# 设置自定义用户模型
+AUTH_USER_MODEL = 'user.User'

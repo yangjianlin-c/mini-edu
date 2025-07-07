@@ -1,0 +1,407 @@
+[
+    {
+        "model": "user.user",
+        "pk": 1,
+        "fields": {
+            "username": "admin",
+            "password": "pbkdf2_sha256$1000000$MEmxeUyb6OgvaNR4raJzSu$aE8rispWGeWEmi9Y0Qra010y5mcv2srd0OBR17BucrU=",
+            "nickname": "管理员",
+            "real_name": "超级管理员",
+            "email": "admin@example.com",
+            "phone": "13800000000",
+            "remark": "平台超级管理员",
+            "avatar": "avatars/default.jpg",
+            "register_time": "2024-05-26T01:56:33.020Z",
+            "last_active_time": "2024-05-26T01:56:33.020Z",
+            "is_vip": true,
+            "vip_expire_time": "2025-05-26T01:56:33.020Z",
+            "is_staff": true,
+            "is_superuser": true
+        }
+    },
+    {
+        "model": "user.user",
+        "pk": 2,
+        "fields": {
+            "username": "user1",
+            "password": "pbkdf2_sha256$720000$examplehash2",
+            "nickname": "普通用户",
+            "real_name": "张三",
+            "email": "user1@example.com",
+            "phone": "13900000001",
+            "remark": "测试用户",
+            "avatar": "avatars/default.jpg",
+            "register_time": "2024-05-20T10:00:00.000Z",
+            "last_active_time": "2024-05-26T10:00:00.000Z",
+            "is_vip": false,
+            "vip_expire_time": null
+        }
+    },
+    {
+        "model": "course.tag",
+        "pk": 1,
+        "fields": {
+            "name": "Flotherm"
+        }
+    },
+    {
+        "model": "course.tag",
+        "pk": 2,
+        "fields": {
+            "name": "入门"
+        }
+    },
+    {
+        "model": "course.tag",
+        "pk": 3,
+        "fields": {
+            "name": "进阶"
+        }
+    },
+    {
+        "model": "course.course",
+        "pk": 1,
+        "fields": {
+            "title": "Flotherm 基础培训教程",
+            "description": "Flotherm 基础培训教程",
+            "level": 3,
+            "study_number": 100,
+            "favorite_number": 10,
+            "tell": "课程须知...",
+            "image": "courses/flotherm_basic.jpg",
+            "is_feature": false,
+            "price": 0,
+            "created_at": "2024-05-18T00:00:00Z",
+            "update_time": "2024-05-18T00:00:00Z",
+            "tags": [
+                1,
+                2
+            ]
+        }
+    },
+    {
+        "model": "course.course",
+        "pk": 2,
+        "fields": {
+            "title": "Flotherm 进阶实例",
+            "description": "Flotherm 进阶实例课程",
+            "level": 2,
+            "study_number": 50,
+            "favorite_number": 5,
+            "tell": "进阶课程须知...",
+            "image": "courses/flotherm_advanced.jpg",
+            "is_feature": true,
+            "price": 299,
+            "created_at": "2024-05-19T00:00:00Z",
+            "update_time": "2024-05-19T00:00:00Z",
+            "tags": [
+                1,
+                3
+            ]
+        }
+    },
+    {
+        "model": "course.lesson",
+        "pk": 1,
+        "fields": {
+            "title": "Flotherm简介",
+            "course": 1,
+            "sort_number": 1,
+            "free_preview": false,
+            "video_source": "bili",
+            "video_url": "BV1zh411U7qn",
+            "content": "## Flotherm简介",
+            "file": null,
+            "created_at": "2024-06-01T00:00:00Z",
+            "update_time": "2024-06-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "course.lesson",
+        "pk": 2,
+        "fields": {
+            "title": "Flotherm界面介绍",
+            "course": 1,
+            "sort_number": 2,
+            "free_preview": false,
+            "video_source": "bili",
+            "video_url": "BV1Jy4y147nq",
+            "content": "## Flotherm界面介绍",
+            "file": null,
+            "created_at": "2024-06-01T00:00:00Z",
+            "update_time": "2024-06-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "course.lesson",
+        "pk": 3,
+        "fields": {
+            "title": "Flotherm创建模型",
+            "course": 1,
+            "sort_number": 3,
+            "free_preview": false,
+            "video_source": "bili",
+            "video_url": "BV175411w7Wd",
+            "content": "## Flotherm创建模型",
+            "file": null,
+            "created_at": "2024-06-01T00:00:00Z",
+            "update_time": "2024-06-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "course.lesson",
+        "pk": 4,
+        "fields": {
+            "title": "Flotherm导入EDA",
+            "course": 1,
+            "sort_number": 4,
+            "free_preview": false,
+            "video_source": "bili",
+            "video_url": "BV1NU4y1b7Jc",
+            "content": "## Flotherm导入EDA",
+            "file": null,
+            "created_at": "2024-06-01T00:00:00Z",
+            "update_time": "2024-06-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "course.lesson",
+        "pk": 5,
+        "fields": {
+            "title": "Flotherm网格划分",
+            "course": 1,
+            "sort_number": 5,
+            "free_preview": false,
+            "video_source": "bili",
+            "video_url": "BV1sB4y1F7v3",
+            "content": "本节介绍了Flotherm网格划分的基础知识,包括全局网格设置、局部网格细化、网格膨胀等,并解释了如何根据模型特点合理设置网格参数,以及如何查看和优化网格质量。视频强调了理解网格划分原理的重要性,并提醒用户要合理利用有限的计算资源,将细网格应用于关键区域。## 您可能对以下问题感兴趣:- 如何理解Flotherm中的minimum size和maximum size参数?- 如何根据模型特点合理设置网格参数?- 如何查看和优化Flotherm中的网格质量?",
+            "file": null,
+            "created_at": "2024-06-01T00:00:00Z",
+            "update_time": "2024-05-31T01:23:18.699Z"
+        }
+    },
+    {
+        "model": "course.lesson",
+        "pk": 6,
+        "fields": {
+            "title": "Flotherm求解设置",
+            "course": 1,
+            "sort_number": 6,
+            "free_preview": false,
+            "video_source": "bili",
+            "video_url": "BV1dU4y1L7sT",
+            "content": "## Flotherm求解设置",
+            "file": null,
+            "created_at": "2024-06-01T00:00:00Z",
+            "update_time": "2024-06-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "course.lesson",
+        "pk": 7,
+        "fields": {
+            "title": "Flotherm后处理",
+            "course": 1,
+            "sort_number": 7,
+            "free_preview": false,
+            "video_source": "bili",
+            "video_url": "BV1Xq4y1L7wz",
+            "content": "## Flotherm后处理",
+            "file": null,
+            "created_at": "2024-06-01T00:00:00Z",
+            "update_time": "2024-06-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "course.enrollment",
+        "pk": 1,
+        "fields": {
+            "user": 2,
+            "course": 2,
+            "status": "paid",
+            "create_time": "2024-05-20T10:00:00.000Z",
+            "update_time": "2024-05-20T10:00:00.000Z"
+        }
+    },
+    {
+        "model": "course.comment",
+        "pk": 1,
+        "fields": {
+            "user": 2,
+            "content": "课程讲得很好！",
+            "course": 1,
+            "created_at": "2024-05-21T10:00:00.000Z",
+            "update_time": "2024-05-21T10:00:00.000Z",
+            "parent": null,
+            "is_deleted": false
+        }
+    },
+    {
+        "model": "course.favorite",
+        "pk": 1,
+        "fields": {
+            "user": 2,
+            "course": 1
+        }
+    },
+    {
+        "model": "user.certificate",
+        "pk": 1,
+        "fields": {
+            "user": 2,
+            "course": 1,
+            "issue_time": "2024-05-25T10:00:00.000Z",
+            "download_url": "certificates/cert1.pdf"
+        }
+    },
+    {
+        "model": "user.order",
+        "pk": 1,
+        "fields": {
+            "user": 2,
+            "course": 2,
+            "status": "paid",
+            "pay_type": "qrcode",
+            "pay_time": "2024-05-20T10:05:00.000Z",
+            "order_no": "ORDER20240520001",
+            "amount": "299.00",
+            "created_at": "2024-05-20T10:00:00.000Z"
+        }
+    },
+    {
+        "model": "course.course",
+        "pk": 3,
+        "fields": {
+            "title": "热设计基础培训教程",
+            "description": "热设计基础培训教程",
+            "level": 1,
+            "study_number": 30,
+            "favorite_number": 2,
+            "tell": "热设计基础课程须知...",
+            "image": "courses/thermal_basic.jpg",
+            "is_feature": false,
+            "price": 500,
+            "created_at": "2024-05-18T00:00:00Z",
+            "update_time": "2024-05-18T00:00:00Z",
+            "tags": [
+                2
+            ]
+        }
+    },
+    {
+        "model": "course.course",
+        "pk": 4,
+        "fields": {
+            "title": "Icepak 基础课程",
+            "description": "Icepak 基础课程，包含软件介绍、界面、操作等内容。",
+            "level": 2,
+            "study_number": 20,
+            "favorite_number": 1,
+            "tell": "Icepak课程须知...",
+            "image": "courses/icepak_basic.jpg",
+            "is_feature": false,
+            "price": 0,
+            "created_at": "2024-06-01T00:00:00Z",
+            "update_time": "2024-06-01T00:00:00Z",
+            "tags": [
+                2
+            ]
+        }
+    },
+    {
+        "model": "course.lesson",
+        "pk": 8,
+        "fields": {
+            "title": "Flotherm 自然散热分析实例(上)",
+            "course": 2,
+            "sort_number": 1,
+            "free_preview": false,
+            "video_source": "bili",
+            "video_url": "BV1b44y1m7qz",
+            "content": "## Flotherm 自然散热分析实例(上)",
+            "file": null,
+            "created_at": "2024-06-01T00:00:00Z",
+            "update_time": "2024-06-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "course.lesson",
+        "pk": 9,
+        "fields": {
+            "title": "Flotherm 自然散热分析实例(下)",
+            "course": 2,
+            "sort_number": 2,
+            "free_preview": false,
+            "video_source": "bili",
+            "video_url": "BV1ho4y1D7ft",
+            "content": "## Flotherm 自然散热分析实例(下)",
+            "file": null,
+            "created_at": "2024-06-01T00:00:00Z",
+            "update_time": "2024-06-01T00:00:00Z"
+        }
+    },
+    {
+        "model": "course.lesson",
+        "pk": 11,
+        "fields": {
+            "title": "Icepak 简介",
+            "course": 4,
+            "sort_number": 1,
+            "free_preview": false,
+            "video_source": "qiniu",
+            "video_url": "02_icepak/let01_icepak_introduce.mp4",
+            "content": "# Icepak课程讲座主要内容## Icepak 简介- Icepak是专门用于电子产品热设计仿真的软件。- 不适用于模拟焊接等非热分析过程。- 提供从封装到系统级的热防震应用。- 与Workbench平台相衔接，增强前后处理能力。## CFD仿真步骤1. **明确仿真目的**：需要明确、简单、可执行。2. **建模**：   - 使用 Icepak 内建对象或从CAD导入模型。   - 定义材料和热流体特性。3. **网格划分**：提供多种网格类型和细化功能。4. **求解**：   - 支持时间相关和稳态分析。   - 支持多种热量传递方式，如对流、传导等。5. **结果分析与评估**：监控残差曲线，定义监控点，支持并行求解。## 仿真目的的重要性- 明确仿真目的，以指导后续步骤。- 了解希望得到的结果及其合理范围。- 验证仿真结果，考虑误差和经验的影响。## 建模方法- 使用 Icepak 内建对象或从CAD导入。- 定义材料库中的材料或自定义材料。- 定义边界条件，如固定、温度相关、湿度相关等。- 使用预定义组件，如风扇、散热器等。## 网格划分与求解- 支持多种网格类型和细化功能。- 求解过程中可以监控残差曲线和定义监控点。- 支持并行求解，提高效率。## 后处理- 提供多种结果输出方式，包括图形、云图、切面图、文字报告、曲线图和动画。- 可以设置温度阀值，超过警戒值的对象以不同颜色显示。## Icepak 文件结构- 每个项目创建一个文件夹，包含项目定义文件（如job, model, problem）。- 包含网格划分结果、求解结果、后处理报告和保存的图片。- 项目文件可以打包为TZR格式，便于传输和重现。",
+            "file": null,
+            "created_at": "2024-06-01T11:22:18.370Z",
+            "update_time": "2024-06-01T11:28:48.120Z"
+        }
+    },
+    {
+        "model": "course.lesson",
+        "pk": 12,
+        "fields": {
+            "title": "Icepak 界面介绍",
+            "course": 4,
+            "sort_number": 2,
+            "free_preview": false,
+            "video_source": "qiniu",
+            "video_url": "02_icepak/let0201_gui_introduce.mp4",
+            "content": "# Icepak软件界面介绍 ...",
+            "file": null,
+            "created_at": "2024-06-01T11:22:18.370Z",
+            "update_time": "2024-06-01T11:28:48.120Z"
+        }
+    },
+    {
+        "model": "course.lesson",
+        "pk": 13,
+        "fields": {
+            "title": "Icepak鼠标操作",
+            "course": 4,
+            "sort_number": 3,
+            "free_preview": false,
+            "video_source": "qiniu",
+            "video_url": "02_icepak/let0202_mouse_control.mp4",
+            "content": "# Icepak鼠标操作 ...",
+            "file": null,
+            "created_at": "2024-06-01T11:22:18.370Z",
+            "update_time": "2024-06-01T11:28:48.120Z"
+        }
+    },
+    {
+        "model": "course.lesson",
+        "pk": 14,
+        "fields": {
+            "title": "Icepak 对齐工具介绍",
+            "course": 4,
+            "sort_number": 4,
+            "free_preview": false,
+            "video_source": "qiniu",
+            "video_url": "02_icepak/let0203_align_tools.mp4",
+            "content": "# Icepak中对齐工具及Icepak单位设置介绍 ...",
+            "file": null,
+            "created_at": "2024-06-01T11:22:18.370Z",
+            "update_time": "2024-06-01T11:28:48.120Z"
+        }
+    }
+]

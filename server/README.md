@@ -31,3 +31,7 @@ http://127.0.0.1:8000/api/docs
 # 后台系统
 http://127.0.0.1:8000/admin
 ```
+
+
+python manage.py flush
+python manage.py loaddata data.json

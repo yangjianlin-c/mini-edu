@@ -7,7 +7,7 @@ from ninja import Router
 from apps.core import R, token_util, auth
 from apps.course.models import Favorite, Course, Enrollment
 from apps.course.schemas import CourseSchema
-from apps.user.models import Banner, User, Feedback
+from apps.user.models import Banner, User, Feedback, Message, Progress, Certificate, Evaluation, Order, Invoice, VipProduct
 from apps.user.schemas import (
     LoginSchema,
     RegisterSchema,
@@ -15,15 +15,27 @@ from apps.user.schemas import (
     UserSchema,
     FeedbackSchema,
     LoginResult,
+    UserInfo,
+    MessageSchema,
+    ProgressSchema,
+    CertificateSchema,
+    EvaluationSchema,
+    OrderSchema,
+    InvoiceSchema,
+    CourseOrderSubmitSchema,
+    VipOrderSubmitSchema,
 )
 from ninja import File, UploadedFile
 from django.contrib.auth.hashers import make_password, check_password
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 
 from server import settings
 
 # Create your views here.
 
 router = Router()
+User = get_user_model()
 
 
 @router.post("/login", summary="登录", response=Union[LoginResult, R])
@@ -150,7 +162,7 @@ def add_user_enrollment(request, course_id: int):
     if enrollment:
         return R.fail("您已经报名了该课程")
 
-    # 创建新的报名记录，状态设置为“未支付”
+    # 创建新的报名记录，状态设置为"未支付"
     enrollment = Enrollment.objects.create(
         user_id=user_id, course_id=course_id, status="unpaid"
     )
@@ -165,3 +177,101 @@ def add_user_enrollment(request, course_id: int):
 def add_feedback(request, data: FeedbackSchema):
     Feedback.objects.create(user_id=request.auth, **data.dict())
     return R.ok()
+
+
+@router.get("/me", summary="获取当前用户信息", response=UserInfo, **auth)
+def get_current_user(request):
+    user = User.objects.get(id=request.auth)
+    return UserInfo(
+        username=user.username,
+        nickname=user.nickname,
+        real_name=user.real_name,
+        email=user.email,
+        phone=user.phone,
+        remark=user.remark,
+        avatar=user.avatar.url if user.avatar else None,
+        is_vip=user.is_vip,
+        vip_expire_time=user.vip_expire_time,
+    )
+
+
+@router.get("/messages", summary="获取用户消息", response=List[MessageSchema], **auth)
+def get_user_messages(request):
+    return Message.objects.filter(user_id=request.auth).order_by("-created_at")
+
+
+@router.get("/progress", summary="获取用户学习进度", response=List[ProgressSchema], **auth)
+def get_user_progress(request):
+    return Progress.objects.filter(user_id=request.auth).order_by("-last_view_time")
+
+
+@router.get("/certificates", summary="获取用户证书", response=List[CertificateSchema], **auth)
+def get_user_certificates(request):
+    return Certificate.objects.filter(user_id=request.auth).order_by("-issue_time")
+
+
+@router.get("/evaluations", summary="获取用户评价", response=List[EvaluationSchema], **auth)
+def get_user_evaluations(request):
+    return Evaluation.objects.filter(user_id=request.auth).order_by("-created_at")
+
+
+@router.get("/orders", summary="获取用户订单", response=List[OrderSchema], **auth)
+def get_user_orders(request):
+    return Order.objects.filter(user_id=request.auth).order_by("-created_at")
+
+
+@router.get("/invoices", summary="获取用户发票", response=List[InvoiceSchema], **auth)
+def get_user_invoices(request):
+    return Invoice.objects.filter(order__user_id=request.auth).order_by("-created_at")
+
+
+@router.get("/feedbacks", summary="获取用户反馈", response=List[FeedbackSchema], **auth)
+def get_user_feedbacks(request):
+    return Feedback.objects.filter(user_id=request.auth).order_by("-id")
+
+
+@router.post("/order/submit_course_payment", summary="提交支付信息", **auth)
+def submit_payment(request, data: CourseOrderSubmitSchema):
+    course = Course.objects.get(id=data.course_id)
+    order = Order.objects.create(
+        user_id=request.auth,
+        course_id=data.course_id,
+        status="unpaid",
+        pay_type=data.pay_type,
+        pay_time=None,
+        order_no=f"ORDER{timezone.now().strftime('%Y%m%d%H%M%S')}{request.auth}",
+        amount=course.price,
+        created_at=timezone.now()
+    )
+    order.pay_serial_no = data.pay_serial_no
+    order.save()
+    return R.ok(data={
+        "order_id": order.id,
+        "order_no": order.order_no,
+        "amount": order.amount,
+        "status": order.status
+    })
+
+
+@router.post("/order/submit_vip_payment", summary="提交VIP支付信息", **auth)
+def submit_vip_payment(request, data: VipOrderSubmitSchema):
+    vip_product = VipProduct.objects.get(id=data.vip_product_id)
+    order = Order.objects.create(
+        user_id=request.auth,
+        order_type="vip",
+        status="unpaid",
+        pay_type=data.pay_type,
+        pay_serial_no=data.pay_serial_no,
+        pay_time=None,
+        order_no=f"VIP{timezone.now().strftime('%Y%m%d%H%M%S')}{request.auth}",
+        amount=vip_product.price,
+        created_at=timezone.now(),
+        pay_remark=vip_product.name
+    )
+    return R.ok(data={
+        "order_id": order.id,
+        "order_no": order.order_no,
+        "amount": order.amount,
+        "status": order.status,
+        "vip_type": vip_product.vip_type
+    })

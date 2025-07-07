@@ -48,22 +48,6 @@ class Course(models.Model):
         verbose_name_plural = "01-课程管理"
 
 
-class Chapter(models.Model):
-    title = models.CharField(max_length=50, verbose_name="名称")
-    description = models.CharField(max_length=200, verbose_name="简介")
-    course = models.ForeignKey(
-        Course, on_delete=models.SET_NULL, verbose_name="所属课程", null=True
-    )
-    sort_number = models.IntegerField(default=999, verbose_name="序号")
-
-    def __str__(self):
-        return self.title
-
-    class Meta:
-        verbose_name = "章节"
-        verbose_name_plural = "02-章节管理"
-
-
 Video_Source = (
     ("bili", "Bilibili"),
     ("qiniu", "Qiniu Cloud"),
@@ -73,9 +57,8 @@ Video_Source = (
 
 class Lesson(models.Model):
     title = models.CharField(max_length=100, verbose_name="标题")
-    chapter = models.ForeignKey(
-        Chapter, verbose_name="所属章节", on_delete=models.SET_NULL, null=True
-    )
+    course = models.ForeignKey(Course, verbose_name="所属课程", on_delete=models.CASCADE)
+    sort_number = models.IntegerField(default=1, verbose_name="序号")
     free_preview = models.BooleanField(default=False)
     video_source = models.CharField(max_length=20, choices=Video_Source)
     video_url = models.CharField(max_length=255, null=True, blank=True)
@@ -89,7 +72,7 @@ class Lesson(models.Model):
 
     class Meta:
         verbose_name = "课时"
-        verbose_name_plural = "03-课时管理"
+        verbose_name_plural = "02-课时管理"
 
 
 STATUS_CHOICES = (
@@ -115,7 +98,7 @@ class Enrollment(models.Model):
 
     class Meta:
         verbose_name = "订购课程"
-        verbose_name_plural = "04-订购课程管理"
+        verbose_name_plural = "03-订购课程管理"
 
 
 class Comment(models.Model):
@@ -128,6 +111,8 @@ class Comment(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True, null=True)
     update_time = models.DateTimeField(verbose_name="更新时间", auto_now=True)
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, verbose_name="父评论")
+    is_deleted = models.BooleanField(default=False, verbose_name="是否已删除")
 
     def __str__(self):
         return self.content
@@ -157,3 +142,16 @@ class Favorite(models.Model):
         super().save(*args, **kwargs)
         self.course.favorite_number = self.course.favorites.count()
         self.course.save()
+
+
+# 点赞表
+class Like(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="用户")
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE, null=True, blank=True, verbose_name="评论")
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, null=True, blank=True, verbose_name="课程")
+    lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, null=True, blank=True, verbose_name="课时")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="点赞时间")
+
+    class Meta:
+        verbose_name = "点赞"
+        verbose_name_plural = "点赞管理"
