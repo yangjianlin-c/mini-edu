@@ -140,4 +140,4 @@ JWT_EXPIRATION_TIME = 3600
 JWT_ALGORITHM = "HS256"
 
 # 设置自定义用户模型
-AUTH_USER_MODEL = 'user.User'
+AUTH_USER_MODEL = "user.User"
